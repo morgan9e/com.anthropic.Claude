@@ -1,0 +1,55 @@
+name: nightly
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 4 * * *'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
+      options: --privileged
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update manifest to latest Claude
+        run: bash ./update.sh
+
+      - name: Build flatpak bundle
+        run: dbus-run-session -- env FLATPAK_DISABLE_ROFILES_FUSE=1 bash ./build.sh
+
+      - name: Read version
+        id: v
+        run: echo "version=$(grep -oP 'releases/linux/x64/\K[0-9.]+' com.anthropic.Claude.yaml)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bundle
+          path: com.anthropic.Claude.flatpak
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: bundle
+
+      - name: Publish nightly release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view nightly --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
+            gh release create nightly --repo "$GITHUB_REPOSITORY" \
+              --title "Nightly" --notes "Latest Claude Desktop flatpak build."
+          gh release upload nightly com.anthropic.Claude.flatpak --repo "$GITHUB_REPOSITORY" --clobber
+          gh release edit nightly --repo "$GITHUB_REPOSITORY" \
+            --title "Nightly (${{ needs.build.outputs.version }})" \
+            --notes "Claude Desktop ${{ needs.build.outputs.version }} ($(date -u +%Y-%m-%d))"
