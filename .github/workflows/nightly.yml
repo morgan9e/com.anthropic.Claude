@@ -31,7 +31,9 @@ jobs:
           ln -sf /etc/machine-id /var/lib/dbus/machine-id
 
       - name: Build flatpak bundle
-        run: dbus-run-session -- bash ./build.sh
+        run: |
+          export FLATPAK_DISABLE_ROFILES_FUSE=1
+          dbus-run-session -- bash ./build.sh
 
       - name: Read version
         id: v
