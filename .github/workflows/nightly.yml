@@ -22,6 +22,21 @@ jobs:
       - name: Update manifest to latest Claude
         run: bash ./update.sh
 
+      - name: Ensure Flathub remote (with retries)
+        run: |
+          set -euo pipefail
+          for i in 1 2 3 4 5; do
+            flatpak remote-delete flathub --system >/dev/null 2>&1 || true
+            if flatpak remote-add --if-not-exists --system flathub https://flathub.org/repo/flathub.flatpakrepo; then
+              echo "Flathub remote added"
+              exit 0
+            fi
+            echo "Attempt $i failed; retrying in $((i*5))s..."
+            sleep $((i*5))
+          done
+          echo "Failed to add flathub after retries"
+          exit 1
+
       - name: Initialize D-Bus machine-id
         run: |
           if [ ! -s /etc/machine-id ]; then
