@@ -22,6 +22,14 @@ jobs:
       - name: Update manifest to latest Claude
         run: bash ./update.sh
 
+      - name: Initialize D-Bus machine-id
+        run: |
+          if [ ! -s /etc/machine-id ]; then
+            dbus-uuidgen --ensure=/etc/machine-id
+          fi
+          mkdir -p /var/lib/dbus
+          ln -sf /etc/machine-id /var/lib/dbus/machine-id
+
       - name: Build flatpak bundle
         run: bash ./build.sh
 
