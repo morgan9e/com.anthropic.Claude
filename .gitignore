@@ -1,0 +1,4 @@
+build-dir
+repo
+.flatpak-builder
+claude-desktop_amd64.deb

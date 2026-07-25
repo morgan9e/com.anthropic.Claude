@@ -31,7 +31,7 @@ modules:
   - name: claude-desktop
     buildsystem: simple
     build-commands:
-      - ar x claude.deb
+      - ar x claude-desktop_amd64.deb
       - tar -xf data.tar.xz
       - mkdir -p /app/claude-desktop
       - cp -a usr/lib/claude-desktop/. /app/claude-desktop/
@@ -41,7 +41,7 @@ modules:
           install -Dm644 "usr/share/icons/hicolor/${s}x${s}/apps/claude-desktop.png" \
             "/app/share/icons/hicolor/${s}x${s}/apps/com.anthropic.Claude.png"
         done
-      - install -Dm644 usr/share/applications/claude-desktop.desktop
+      - install -Dm644 usr/share/applications/com.anthropic.Claude.desktop 
           /app/share/applications/com.anthropic.Claude.desktop
       - sed -i 's/^Icon=claude-desktop$/Icon=com.anthropic.Claude/'
           /app/share/applications/com.anthropic.Claude.desktop
@@ -50,9 +50,7 @@ modules:
 
     sources:
       - type: file
-        url: https://downloads.claude.ai/releases/linux/x64/1.18286.0/Claude-259c3fc2a647e4222ca15e99bba9b2649f31f051.deb
-        sha256: 8f314ad1a80aab52711a8eaabc06aae48fb341f0adea4a0d7264db5cab9d0536
-        dest-filename: claude.deb
+        path: claude-desktop_amd64.deb
       - type: file
         path: claude-desktop.sh
       - type: file
